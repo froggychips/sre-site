@@ -133,14 +133,12 @@
         </div>
 
         <div style="text-align:center; margin: 40px 0;">
-            <a href="kg.html" class="btn" id="btn-kg-ru">Открыть полную презентацию KG →</a>
-            <a href="kg.html" class="btn" id="btn-kg-en" style="display:none">Open Full KG Presentation →</a>
-            <a href="https://github.com/froggychips/sre-ai-copilot" target="_blank" class="btn" style="background:#333;">GitHub →</a>
+            <a href="https://github.com/froggychips/sre-ai-copilot" target="_blank" class="btn">GitHub →</a>
         </div>
     </div>
 
     <footer>
-        Solo side project • ~50 дней • от observability к safe remediation<br>
+        от observability к safe remediation<br>
         <a href="https://froggychips.xyz" style="color:var(--accent)">froggychips.xyz</a>
     </footer>
 
@@ -151,7 +149,7 @@
 
             // Каждый локализованный элемент — пара id `<key>-ru` / `<key>-en`.
             // display='' возвращает CSS-дефолт (block для p/h, inline-block для .btn).
-            ['subtitle','about','desc','btn-kg','f1t','f1b','f2t','f2b','f3t','f3b']
+            ['subtitle','about','desc','f1t','f1b','f2t','f2b','f3t','f3b']
                 .forEach(function (k) {
                     var ru = document.getElementById(k + '-ru');
                     var en = document.getElementById(k + '-en');
