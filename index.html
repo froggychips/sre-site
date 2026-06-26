@@ -99,30 +99,30 @@
 
     <header>
         <h1 id="title">SRE AI Copilot</h1>
-        <p class="subtitle" id="subtitle-ru">Knowledge Graph-first помощник для SRE и Platform Engineering</p>
-        <p class="subtitle" id="subtitle-en" style="display:none">Knowledge Graph-first copilot for SRE & Platform Engineering</p>
+        <p class="subtitle" id="subtitle-ru">AI-копилот инцидентов в Kubernetes, которому можно доверить прод — потому что «применять ли фикс» решает детерминированный policy-engine, а не LLM.</p>
+        <p class="subtitle" id="subtitle-en" style="display:none">An AI incident copilot for Kubernetes you can trust with prod — because whether to apply a fix is decided by a deterministic policy engine, not the LLM.</p>
     </header>
 
     <div class="container">
         <div class="card">
             <h2 id="about-ru">О проекте</h2>
             <h2 id="about-en" style="display:none">About the Project</h2>
-            <p id="desc-ru">Гибридная система (детерминистический Knowledge Graph + безопасный LLM-пайплайн) для автоматического обогащения алертов, RCA и controlled remediation в Kubernetes.</p>
-            <p id="desc-en" style="display:none">Hybrid system (deterministic Knowledge Graph + safe LLM pipeline) for alert enrichment, RCA and controlled remediation in Kubernetes environments.</p>
+            <p id="desc-ru">Гибрид: детерминированный Knowledge Graph + LLM-пайплайн за policy-gate. Обогащение алертов, RCA и controlled remediation в Kubernetes. Спроектирован честным к своим слепым зонам — система помечает, чего она не знает, вместо того чтобы выдавать догадки за факты.</p>
+            <p id="desc-en" style="display:none">A hybrid: deterministic Knowledge Graph + an LLM pipeline behind a policy gate. Alert enrichment, RCA and controlled remediation for Kubernetes. Built to be honest about its blind spots — it marks what it doesn't know instead of passing guesses off as facts.</p>
         </div>
 
         <div class="features">
             <div class="card">
-                <h3>Knowledge Graph</h3>
-                <p>Самокорректирующаяся модель инфраструктуры с 2400+ сервисами, multi-source topology, anomaly detection и integrity watchdog.</p>
+                <h3>Safety-first remediation</h3>
+                <p>Главный страх «AI сам трогает прод» снят архитектурно: можно ли запускать <code>kubectl</code>-write считается <b>детерминированно</b> (8 risk-axes → policy-engine), а не берётся из ответа модели. Dry-run по умолчанию, approvals, anti-replay, savepoint-изоляция.</p>
             </div>
             <div class="card">
-                <h3>Safety First</h3>
-                <p>Детерминированный policy engine, dry-run, approvals, anti-replay. Executor hardened до production-ready уровня.</p>
+                <h3>Self-correcting Knowledge Graph</h3>
+                <p>Граф зависимостей кластера из нескольких источников (топология, деплои, события, метрики, логи) с anomaly-detection и <b>integrity-watchdog'ом</b>, который ловит дрейф качества данных сам. Масштабируется на тысячи сервисов.</p>
             </div>
             <div class="card">
-                <h3>Real Impact</h3>
-                <p>Заменил legacy alert bot, даёт enriched Discord embeds, MCP tools для SRE и client-dev команд.</p>
+                <h3>Honest by design</h3>
+                <p>Сигналы помечены по достоверности (<code>is_proxy</code>), известные слепые зоны задокументированы в самом ответе. Система не выдаёт «зелёное», когда у неё просто нет данных — редкий, но решающий для доверия признак.</p>
             </div>
         </div>
 
@@ -134,7 +134,7 @@
     </div>
 
     <footer>
-        Solo side project • ~50 days • Mid DevOps → Senior-level thinking<br>
+        Solo side project • ~50 дней • от observability к safe remediation<br>
         <a href="https://froggychips.xyz" style="color:var(--accent)">froggychips.xyz</a>
     </footer>
 
