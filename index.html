@@ -222,13 +222,21 @@
 
         <!-- WITHOUT vs WITH -->
         <h2 class="sec"><span id="cmph-ru">Сырой алертер против копайлота</span><span id="cmph-en" style="display:none">Raw alerter vs. the copilot</span></h2>
-        <table class="cmp">
+        <table class="cmp" id="cmptab-ru">
             <tr><th></th><th>Raw alerter</th><th>SRE AI Copilot</th></tr>
-            <tr><td>Context</td><td>только сработавшее правило</td><td class="with">+ деплои, зависимости, логи, ingress RED</td></tr>
-            <tr><td>Root cause</td><td>копаешь сам</td><td class="with">ранжированная гипотеза с evidence</td></tr>
+            <tr><td>Контекст</td><td>только сработавшее правило</td><td class="with">+ деплои, зависимости, логи, ingress RED</td></tr>
+            <tr><td>Первопричина</td><td>копаешь сам</td><td class="with">ранжированная гипотеза с evidence</td></tr>
             <tr><td>Blast radius</td><td>неизвестен</td><td class="with">кого зацепит — посчитано</td></tr>
-            <tr><td>Action</td><td>вручную</td><td class="with">предложенный фикс за policy-gate</td></tr>
-            <tr><td>Trust</td><td>—</td><td class="with">детерминированный гейт, approval, dry-run</td></tr>
+            <tr><td>Действие</td><td>вручную</td><td class="with">предложенный фикс за policy-gate</td></tr>
+            <tr><td>Доверие</td><td>—</td><td class="with">детерминированный гейт, approval, dry-run</td></tr>
+        </table>
+        <table class="cmp" id="cmptab-en" style="display:none">
+            <tr><th></th><th>Raw alerter</th><th>SRE AI Copilot</th></tr>
+            <tr><td>Context</td><td>just the firing rule</td><td class="with">+ deploys, dependencies, logs, ingress RED</td></tr>
+            <tr><td>Root cause</td><td>you dig</td><td class="with">ranked hypothesis with evidence</td></tr>
+            <tr><td>Blast radius</td><td>unknown</td><td class="with">who's affected — computed</td></tr>
+            <tr><td>Action</td><td>manual</td><td class="with">suggested fix behind a policy gate</td></tr>
+            <tr><td>Trust</td><td>—</td><td class="with">deterministic gate, approval, dry-run</td></tr>
         </table>
         <div class="proof">
             <span><b>1600+</b> tests</span>
@@ -256,7 +264,7 @@
             // Каждый локализованный элемент — пара id `<key>-ru` / `<key>-en`.
             // display='' возвращает CSS-дефолт (block для p/h, inline-block для .btn).
             ['subtitle','about','desc','f1t','f1b','f2t','f2b','f3t','f3b',
-             'how','safe','exh','exc','cmph']
+             'how','safe','exh','exc','cmph','cmptab']
                 .forEach(function (k) {
                     var ru = document.getElementById(k + '-ru');
                     var en = document.getElementById(k + '-en');
