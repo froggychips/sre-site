@@ -113,16 +113,22 @@
 
         <div class="features">
             <div class="card">
-                <h3>Safety-first remediation</h3>
-                <p>Главный страх «AI сам трогает прод» снят архитектурно: можно ли запускать <code>kubectl</code>-write считается <b>детерминированно</b> (8 risk-axes → policy-engine), а не берётся из ответа модели. Dry-run по умолчанию, approvals, anti-replay, savepoint-изоляция.</p>
+                <h3 id="f1t-ru">Безопасность прежде всего</h3>
+                <h3 id="f1t-en" style="display:none">Safety-first remediation</h3>
+                <p id="f1b-ru">Главный страх «AI сам трогает прод» снят архитектурно: можно ли запускать <code>kubectl</code>-write считается <b>детерминированно</b> (8 risk-axes → policy-engine), а не берётся из ответа модели. Dry-run по умолчанию, approvals, anti-replay, savepoint-изоляция.</p>
+                <p id="f1b-en" style="display:none">The core fear — “the AI touches prod on its own” — is removed by design: whether a <code>kubectl</code> write may run is computed <b>deterministically</b> (8 risk axes → policy engine), not taken from the model’s answer. Dry-run by default, approvals, anti-replay, savepoint isolation.</p>
             </div>
             <div class="card">
-                <h3>Self-correcting Knowledge Graph</h3>
-                <p>Граф зависимостей кластера из нескольких источников (топология, деплои, события, метрики, логи) с anomaly-detection и <b>integrity-watchdog'ом</b>, который ловит дрейф качества данных сам. Масштабируется на тысячи сервисов.</p>
+                <h3 id="f2t-ru">Самокорректирующийся Knowledge Graph</h3>
+                <h3 id="f2t-en" style="display:none">Self-correcting Knowledge Graph</h3>
+                <p id="f2b-ru">Граф зависимостей кластера из нескольких источников (топология, деплои, события, метрики, логи) с anomaly-detection и <b>integrity-watchdog'ом</b>, который ловит дрейф качества данных сам. Масштабируется на тысячи сервисов.</p>
+                <p id="f2b-en" style="display:none">A multi-source dependency graph of the cluster (topology, deploys, events, metrics, logs) with anomaly detection and an <b>integrity watchdog</b> that catches data-quality drift on its own. Scales to thousands of services.</p>
             </div>
             <div class="card">
-                <h3>Honest by design</h3>
-                <p>Сигналы помечены по достоверности (<code>is_proxy</code>), известные слепые зоны задокументированы в самом ответе. Система не выдаёт «зелёное», когда у неё просто нет данных — редкий, но решающий для доверия признак.</p>
+                <h3 id="f3t-ru">Честность по умолчанию</h3>
+                <h3 id="f3t-en" style="display:none">Honest by design</h3>
+                <p id="f3b-ru">Сигналы помечены по достоверности (<code>is_proxy</code>), известные слепые зоны задокументированы в самом ответе. Система не выдаёт «зелёное», когда у неё просто нет данных — редкий, но решающий для доверия признак.</p>
+                <p id="f3b-en" style="display:none">Signals are tagged by confidence (<code>is_proxy</code>); known blind spots are documented in the response itself. It won’t report “green” when it simply has no data — a rare but decisive trait for trust.</p>
             </div>
         </div>
 
@@ -143,17 +149,15 @@
             document.getElementById('btn-ru').classList.toggle('active', lang === 'ru');
             document.getElementById('btn-en').classList.toggle('active', lang === 'en');
 
-            document.getElementById('subtitle-ru').style.display = lang === 'ru' ? 'block' : 'none';
-            document.getElementById('subtitle-en').style.display = lang === 'en' ? 'block' : 'none';
-
-            document.getElementById('about-ru').style.display = lang === 'ru' ? 'block' : 'none';
-            document.getElementById('about-en').style.display = lang === 'en' ? 'block' : 'none';
-
-            document.getElementById('desc-ru').style.display = lang === 'ru' ? 'block' : 'none';
-            document.getElementById('desc-en').style.display = lang === 'en' ? 'block' : 'none';
-
-            document.getElementById('btn-kg-ru').style.display = lang === 'ru' ? 'inline-block' : 'none';
-            document.getElementById('btn-kg-en').style.display = lang === 'en' ? 'inline-block' : 'none';
+            // Каждый локализованный элемент — пара id `<key>-ru` / `<key>-en`.
+            // display='' возвращает CSS-дефолт (block для p/h, inline-block для .btn).
+            ['subtitle','about','desc','btn-kg','f1t','f1b','f2t','f2b','f3t','f3b']
+                .forEach(function (k) {
+                    var ru = document.getElementById(k + '-ru');
+                    var en = document.getElementById(k + '-en');
+                    if (ru) ru.style.display = lang === 'ru' ? '' : 'none';
+                    if (en) en.style.display = lang === 'en' ? '' : 'none';
+                });
         }
     </script>
 </body>
