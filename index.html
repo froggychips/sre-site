@@ -89,6 +89,29 @@
             color: var(--muted);
             font-size: 0.95rem;
         }
+        h2.sec { color: var(--accent); font-size: 1.8rem; margin: 48px 0 4px; }
+        .lead { color: var(--muted); margin: 0 0 8px; }
+        .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 18px 0; }
+        .step { background: var(--card); border: 1px solid #232a31; border-top: 3px solid var(--accent); border-radius: 8px; padding: 14px 16px; }
+        .step.gated { border-top-color: var(--muted); }
+        .step b { display: block; margin-bottom: 2px; }
+        .step .tag-live { color: #88c479; font-size: 11px; font-weight: 600; }
+        .step .tag-gate { color: var(--muted); font-size: 11px; font-weight: 600; }
+        .step p { margin: 6px 0 0; font-size: 13px; color: var(--muted); }
+        .embed { background: #2b2d31; border-left: 4px solid #fdd835; border-radius: 6px; padding: 16px 20px; margin: 16px 0; font-size: 14px; }
+        .embed .et { color: #fdd835; font-weight: 600; margin-bottom: 6px; }
+        .embed .fn { color: #fff; font-weight: 600; font-size: 13px; margin-top: 10px; }
+        .embed .fv { color: #b9bbbe; font-size: 13px; }
+        .embed .ok { color: #88c479; } .embed .warn { color: #d19a66; }
+        .embed code { background: #1e1f22; }
+        table.cmp { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+        table.cmp th, table.cmp td { padding: 10px 12px; border-bottom: 1px solid #232a31; text-align: left; vertical-align: top; }
+        table.cmp th { color: var(--accent); }
+        table.cmp td:first-child { color: var(--muted); white-space: nowrap; }
+        table.cmp .with { color: var(--text); }
+        .proof { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0; }
+        .proof span { background: var(--card); border: 1px solid #232a31; border-radius: 20px; padding: 6px 14px; font-size: 13px; color: var(--muted); }
+        .proof b { color: var(--accent); }
     </style>
 </head>
 <body>
@@ -132,6 +155,89 @@
             </div>
         </div>
 
+        <!-- HOW IT WORKS -->
+        <div id="how-ru">
+            <h2 class="sec">Как это работает</h2>
+            <p class="lead">Конвейер инцидента — 6 ступеней. Честно: что уже live, а что включается с LLM-флагом.</p>
+            <div class="steps">
+                <div class="step"><b>1 · Ingest</b><span class="tag-live">live</span><p>AlertManager webhook → HMAC + anti-replay + dedup.</p></div>
+                <div class="step"><b>2 · Enrich (KG)</b><span class="tag-live">live</span><p>Граф добавляет контекст: деплои, blast radius, pod-события, логи, ingress 5xx/p95.</p></div>
+                <div class="step gated"><b>3 · Reason (LLM)</b><span class="tag-gate">за флагом</span><p>Гипотез-агенты строят версии из контекста; critic ранжирует и режет слабые.</p></div>
+                <div class="step"><b>4 · Respond</b><span class="tag-live">live</span> <span class="tag-gate">+LLM</span><p>Один Discord-эмбед: факты + подсказка root-cause; с LLM — связный narrative.</p></div>
+                <div class="step gated"><b>5 · Remediate</b><span class="tag-gate">opt-in</span><p>Предложить/применить kubectl-фикс за детерминированным policy-gate + approval.</p></div>
+                <div class="step"><b>6 · Self-watch</b><span class="tag-live">live</span><p>7 self-health-чеков /30мин, включая integrity-watchdog графа.</p></div>
+            </div>
+        </div>
+        <div id="how-en" style="display:none">
+            <h2 class="sec">How it works</h2>
+            <p class="lead">The incident pipeline — 6 stages. Honest about what's live today vs what the LLM flag turns on.</p>
+            <div class="steps">
+                <div class="step"><b>1 · Ingest</b><span class="tag-live">live</span><p>AlertManager webhook → HMAC + anti-replay + dedup.</p></div>
+                <div class="step"><b>2 · Enrich (KG)</b><span class="tag-live">live</span><p>The graph adds context: deploys, blast radius, pod events, logs, ingress 5xx/p95.</p></div>
+                <div class="step gated"><b>3 · Reason (LLM)</b><span class="tag-gate">flagged</span><p>Hypothesis agents draft versions from the context; a critic ranks and prunes weak ones.</p></div>
+                <div class="step"><b>4 · Respond</b><span class="tag-live">live</span> <span class="tag-gate">+LLM</span><p>One Discord embed: facts + a root-cause hint; with LLM, a coherent narrative.</p></div>
+                <div class="step gated"><b>5 · Remediate</b><span class="tag-gate">opt-in</span><p>Propose/apply a kubectl fix behind a deterministic policy gate + approval.</p></div>
+                <div class="step"><b>6 · Self-watch</b><span class="tag-live">live</span><p>7 self-health checks /30 min, including a graph integrity watchdog.</p></div>
+            </div>
+        </div>
+
+        <!-- EXAMPLE OUTPUT -->
+        <h2 class="sec"><span id="exh-ru">Как выглядит вывод</span><span id="exh-en" style="display:none">What the output looks like</span></h2>
+        <p class="lead"><span id="exc-ru" >Синтетический пример critical-эмбеда в Discord (данные вымышленные).</span><span id="exc-en" style="display:none">A synthetic example of a critical Discord embed (fictional data).</span></p>
+        <div class="embed">
+            <div class="et">🔴 Critical · checkout-service · prod</div>
+            <div class="fn">🎯 Likely cause</div>
+            <div class="fv">deploy <code>#482</code> 4 min before — p95 +180%, 5xx 0.6 rps at <code>api.example.com/checkout</code></div>
+            <div class="fn">🌐 Endpoint health <span class="fv">(ingress-derived)</span></div>
+            <div class="fv"><span class="warn">5xx 0.6 rps · p95 920 ms</span></div>
+            <div class="fn">💥 Blast radius</div>
+            <div class="fv">3 svc → <code>orders-service</code>, <code>cart-service</code>, <code>payments-gateway</code> · 1 URL</div>
+            <div class="fn">🩺 Pod events</div>
+            <div class="fv">CrashLoopBackOff ×7 (OOMKilled)</div>
+            <div class="fn">🔧 Suggested action</div>
+            <div class="fv"><code>kubectl rollout undo deploy/checkout-service</code> &nbsp; <span class="ok">[⚙️ Apply — dry-run ✓, risk: medium]</span></div>
+        </div>
+
+        <!-- WHY SAFE -->
+        <div id="safe-ru">
+            <h2 class="sec">Почему это безопасно для прода</h2>
+            <p class="lead">Главный страх «AI сам трогает прод» снят архитектурно — решение принимает не модель:</p>
+            <ul>
+                <li><b>Детерминированный policy-gate</b>: можно ли запускать <code>kubectl</code>-write считается из <i>структурного</i> intent'а по 8 risk-axes, а не берётся из ответа LLM (его risk — лишь advisory).</li>
+                <li><b>Dry-run по умолчанию</b> + <b>approval</b>: реальный apply только после <code>--dry-run=server</code> и явного подтверждения кнопкой (risk ≤ medium).</li>
+                <li><b>TOCTOU-подпись intent</b> + anti-replay + <b>savepoint-изоляция</b> + полный OTEL-аудит каждого действия.</li>
+                <li><b>Default = advisory</b>: из коробки copilot не зовёт <code>kubectl</code> вообще — анализирует и пишет в Discord.</li>
+            </ul>
+        </div>
+        <div id="safe-en" style="display:none">
+            <h2 class="sec">Why it's safe next to prod</h2>
+            <p class="lead">The core fear — "the AI touches prod on its own" — is removed by design; the model doesn't make the call:</p>
+            <ul>
+                <li><b>Deterministic policy gate</b>: whether a <code>kubectl</code> write may run is computed from the <i>structured</i> intent across 8 risk axes — not taken from the LLM (its risk field is advisory only).</li>
+                <li><b>Dry-run by default</b> + <b>approval</b>: a real apply happens only after <code>--dry-run=server</code> and an explicit button confirmation (risk ≤ medium).</li>
+                <li><b>TOCTOU intent signature</b> + anti-replay + <b>savepoint isolation</b> + full OTEL audit of every action.</li>
+                <li><b>Default = advisory</b>: out of the box the copilot never calls <code>kubectl</code> — it analyzes and posts to Discord.</li>
+            </ul>
+        </div>
+
+        <!-- WITHOUT vs WITH -->
+        <h2 class="sec"><span id="cmph-ru">Сырой алертер против копайлота</span><span id="cmph-en" style="display:none">Raw alerter vs. the copilot</span></h2>
+        <table class="cmp">
+            <tr><th></th><th>Raw alerter</th><th>SRE AI Copilot</th></tr>
+            <tr><td>Context</td><td>только сработавшее правило</td><td class="with">+ деплои, зависимости, логи, ingress RED</td></tr>
+            <tr><td>Root cause</td><td>копаешь сам</td><td class="with">ранжированная гипотеза с evidence</td></tr>
+            <tr><td>Blast radius</td><td>неизвестен</td><td class="with">кого зацепит — посчитано</td></tr>
+            <tr><td>Action</td><td>вручную</td><td class="with">предложенный фикс за policy-gate</td></tr>
+            <tr><td>Trust</td><td>—</td><td class="with">детерминированный гейт, approval, dry-run</td></tr>
+        </table>
+        <div class="proof">
+            <span><b>1600+</b> tests</span>
+            <span><b>multi-source</b> KG</span>
+            <span><b>8-axis</b> policy gate</span>
+            <span><b>MCP</b> tools (SRE + client-dev)</span>
+            <span><b>honest</b> blind-spot tagging</span>
+        </div>
+
         <div style="text-align:center; margin: 40px 0;">
             <a href="https://github.com/froggychips/sre-ai-copilot" target="_blank" class="btn">GitHub →</a>
         </div>
@@ -149,7 +255,8 @@
 
             // Каждый локализованный элемент — пара id `<key>-ru` / `<key>-en`.
             // display='' возвращает CSS-дефолт (block для p/h, inline-block для .btn).
-            ['subtitle','about','desc','f1t','f1b','f2t','f2b','f3t','f3b']
+            ['subtitle','about','desc','f1t','f1b','f2t','f2b','f3t','f3b',
+             'how','safe','exh','exc','cmph']
                 .forEach(function (k) {
                     var ru = document.getElementById(k + '-ru');
                     var en = document.getElementById(k + '-en');
