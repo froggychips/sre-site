@@ -112,6 +112,12 @@
         .proof { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0; }
         .proof span { background: var(--card); border: 1px solid #232a31; border-radius: 20px; padding: 6px 14px; font-size: 13px; color: var(--muted); }
         .proof b { color: var(--accent); }
+        .claim { display: inline-block; margin-top: 14px; color: var(--accent); font-size: 1.05rem; }
+        .prod { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin: 18px 0; }
+        .pcard { background: var(--card); border: 1px solid #232a31; border-left: 3px solid var(--accent); border-radius: 8px; padding: 18px 20px; }
+        .pcard .num { color: var(--accent); font-weight: 700; font-size: 1.25rem; display: block; }
+        .pcard p { margin: 8px 0 0; font-size: 13.5px; color: var(--muted); }
+        .pcard .fix { color: var(--text); display: block; margin-top: 8px; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -122,8 +128,8 @@
 
     <header>
         <h1 id="title">SRE AI Copilot</h1>
-        <p class="subtitle" id="subtitle-ru">AI-копилот инцидентов в Kubernetes, которому можно доверить прод — потому что «применять ли фикс» решает детерминированный policy-engine, а не LLM.</p>
-        <p class="subtitle" id="subtitle-en" style="display:none">An AI incident copilot for Kubernetes you can trust with prod — because whether to apply a fix is decided by a deterministic policy engine, not the LLM.</p>
+        <p class="subtitle" id="subtitle-ru">Слой достоверного знания о проде, на котором можно безопасно строить AI-SRE. Сначала — модель инфраструктуры с evidence и провенансом, и только потом рассуждения поверх неё.<br><b class="claim">LLM — опционален. Knowledge Graph — нет.</b></p>
+        <p class="subtitle" id="subtitle-en" style="display:none">The operational knowledge layer for AI-powered SRE. Build a trustworthy, evidence-backed model of your production first — then let anything reason about it.<br><b class="claim">The LLM is optional. The Knowledge Graph is not.</b></p>
     </header>
 
     <div class="container">
@@ -142,16 +148,16 @@
                 <p id="f1b-en" style="display:none">The core fear — “the AI touches prod on its own” — is removed by design: whether a <code>kubectl</code> write may run is computed <b>deterministically</b> (8 risk axes → policy engine), not taken from the model’s answer. Dry-run by default, approvals, anti-replay, savepoint isolation.</p>
             </div>
             <div class="card">
-                <h3 id="f2t-ru">Самокорректирующийся Knowledge Graph</h3>
-                <h3 id="f2t-en" style="display:none">Self-correcting Knowledge Graph</h3>
-                <p id="f2b-ru">Граф зависимостей кластера из нескольких источников (топология, деплои, события, метрики, логи) с anomaly-detection и <b>integrity-watchdog'ом</b>, который ловит дрейф качества данных сам. Масштабируется на тысячи сервисов.</p>
-                <p id="f2b-en" style="display:none">A multi-source dependency graph of the cluster (topology, deploys, events, metrics, logs) with anomaly detection and an <b>integrity watchdog</b> that catches data-quality drift on its own. Scales to thousands of services.</p>
+                <h3 id="f2t-ru">Граф, который знает, чего он не знает</h3>
+                <h3 id="f2t-en" style="display:none">A Knowledge Graph that knows when it doesn't know</h3>
+                <p id="f2b-ru">Операционный граф из нескольких источников (топология, деплои, события, метрики, логи) с провенансом, отслеживанием свежести, проверками целостности и явными слепыми зонами. Сейчас в проде: <b>11 540 узлов</b>, <b>9 004 ребра</b>, <b>188 namespace</b>.</p>
+                <p id="f2b-en" style="display:none">A multi-source operational graph (topology, deploys, events, metrics, logs) with provenance, freshness tracking, integrity checks and explicit blind spots. Live in production: <b>11,540 nodes</b>, <b>9,004 edges</b>, <b>188 namespaces</b>.</p>
             </div>
             <div class="card">
                 <h3 id="f3t-ru">Честность по умолчанию</h3>
                 <h3 id="f3t-en" style="display:none">Honest by design</h3>
-                <p id="f3b-ru">Сигналы помечены по достоверности (<code>is_proxy</code>), известные слепые зоны задокументированы в самом ответе. Система не выдаёт «зелёное», когда у неё просто нет данных — редкий, но решающий для доверия признак.</p>
-                <p id="f3b-en" style="display:none">Signals are tagged by confidence (<code>is_proxy</code>); known blind spots are documented in the response itself. It won’t report “green” when it simply has no data — a rare but decisive trait for trust.</p>
+                <p id="f3b-ru">Наблюдаемые факты отделены от прокси-сигналов и неполных данных, известные слепые зоны задокументированы в самом ответе. Система не выдаёт «зелёное», когда у неё просто нет данных — редкий, но решающий для доверия признак.</p>
+                <p id="f3b-en" style="display:none">Observed facts are distinguished from proxies and incomplete evidence; known blind spots are documented in the response itself. It won’t report “green” when it simply has no data — a rare but decisive trait for trust.</p>
             </div>
         </div>
 
@@ -220,29 +226,86 @@
             </ul>
         </div>
 
+        <!-- BUILT AGAINST PRODUCTION -->
+        <div id="prod-ru">
+            <h2 class="sec">Проверено продом, а не демо-кластером</h2>
+            <p class="lead">Четыре реальных дефекта этой недели. Каждый нашёлся на живых данных и стал регрессионным тестом.</p>
+            <div class="prod">
+                <div class="pcard">
+                    <span class="num">2 092 невалидных ребра за тик</span>
+                    <p>k8s Service и его Deployment делили одну строку с ключом <code>(namespace, name)</code>. Ребро между ними не могло существовать — вырождалось в петлю и отбрасывалось. В графе жило <b>3</b> ребра <code>serves_traffic</code>.</p>
+                    <span class="fix">→ Явная онтология узлов + регрессионные тесты. Сейчас 4 234 ребра.</span>
+                </div>
+                <div class="pcard">
+                    <span class="num">230 задач в очереди</span>
+                    <p>Окно жизни было выставлено ровно у одной периодической задачи из 27. Дешёвые пробы копились — 94 минутных тика за полтора часа — и полностью вытеснили синк топологии: он планировался по расписанию и не выполнялся ни разу.</p>
+                    <span class="fix">→ Протухание задач по интервалу.</span>
+                </div>
+                <div class="pcard">
+                    <span class="num">4 200 upsert-ов в одной транзакции</span>
+                    <p>Синк коммитил раз в тик, удерживая блокировку 13 минут. Миграция встала за ним в очередь — а очередь на лок в PostgreSQL блокирует всех, кто пришёл после неё. Зависли семь читателей, приложение стояло 6 минут.</p>
+                    <span class="fix">→ Коммит батчами.</span>
+                </div>
+                <div class="pcard">
+                    <span class="num">Метрика, которая солгала</span>
+                    <p>Новый тип узла уронил <code>orphan</code> с 72,5% до 42% за ночь — без единой новой интеграции. Каждый «вылеченный» сервис получил ровно одно ребро: на самого себя.</p>
+                    <span class="fix">→ Откатили метрику, а не схему. У каждой метрики качества теперь тест на то, чего она считать НЕ должна.</span>
+                </div>
+            </div>
+        </div>
+        <div id="prod-en" style="display:none">
+            <h2 class="sec">Built against production, not a demo cluster</h2>
+            <p class="lead">Four real defects from a single week. Each surfaced on live data and became a regression test.</p>
+            <div class="prod">
+                <div class="pcard">
+                    <span class="num">2,092 invalid edges per tick</span>
+                    <p>A k8s Service and its Deployment shared one row keyed by <code>(namespace, name)</code>. The edge between them could not exist — it degenerated into a self-loop and was dropped. The graph held <b>3</b> <code>serves_traffic</code> edges.</p>
+                    <span class="fix">→ Explicit node ontology + regression tests. Now 4,234 edges.</span>
+                </div>
+                <div class="pcard">
+                    <span class="num">230 queued jobs</span>
+                    <p>Exactly one periodic task out of 27 had an expiry window. Low-value probes piled up — 94 one-minute ticks over 90 minutes — and starved the topology sync completely: dispatched on schedule, never executed.</p>
+                    <span class="fix">→ Task expiry sized to each interval.</span>
+                </div>
+                <div class="pcard">
+                    <span class="num">4,200 upserts, one transaction</span>
+                    <p>A sync committed once per tick, holding a table lock for 13 minutes. A migration queued behind it — and in PostgreSQL a queued DDL blocks every reader that arrives after it. Seven readers hung; the app stalled for 6 minutes.</p>
+                    <span class="fix">→ Batched commits.</span>
+                </div>
+                <div class="pcard">
+                    <span class="num">The metric that lied</span>
+                    <p>A new node type made <code>orphan</code> drop from 72.5% to 42% overnight — without a single new integration. Every “cured” service had gained exactly one edge: to itself.</p>
+                    <span class="fix">→ We reverted the metric, not the schema. Every quality metric now has a test asserting what it must NOT count.</span>
+                </div>
+            </div>
+        </div>
+
         <!-- WITHOUT vs WITH -->
-        <h2 class="sec"><span id="cmph-ru">Сырой алертер против копайлота</span><span id="cmph-en" style="display:none">Raw alerter vs. the copilot</span></h2>
+        <h2 class="sec"><span id="cmph-ru">Почему всё держится на графе</span><span id="cmph-en" style="display:none">Why the Knowledge Graph matters</span></h2>
         <table class="cmp" id="cmptab-ru">
-            <tr><th></th><th>Raw alerter</th><th>SRE AI Copilot</th></tr>
-            <tr><td>Контекст</td><td>только сработавшее правило</td><td class="with">+ деплои, зависимости, логи, ingress RED</td></tr>
-            <tr><td>Первопричина</td><td>копаешь сам</td><td class="with">ранжированная гипотеза с evidence</td></tr>
-            <tr><td>Blast radius</td><td>неизвестен</td><td class="with">кого зацепит — посчитано</td></tr>
-            <tr><td>Действие</td><td>вручную</td><td class="with">предложенный фикс за policy-gate</td></tr>
-            <tr><td>Доверие</td><td>—</td><td class="with">детерминированный гейт, approval, dry-run</td></tr>
+            <tr><th></th><th>Обычный AI-SRE</th><th>SRE AI Copilot</th></tr>
+            <tr><td>Источник истины</td><td>модель и её контекст</td><td class="with">операционный граф в Postgres</td></tr>
+            <tr><td>Evidence</td><td>подразумевается</td><td class="with">явное, с провенансом источника</td></tr>
+            <tr><td>Неизвестное</td><td>обычно скрыто</td><td class="with">полноправное состояние: «данных нет» ≠ «всё хорошо»</td></tr>
+            <tr><td>История</td><td>ограничена окном</td><td class="with">хранится: деплои, события, аномалии</td></tr>
+            <tr><td>Право на действие</td><td>решает модель или тул</td><td class="with">детерминированный policy-gate, 8 risk-axes</td></tr>
+            <tr><td>Обратная связь</td><td>опциональна</td><td class="with">непрерывная: результат возвращается в граф</td></tr>
         </table>
         <table class="cmp" id="cmptab-en" style="display:none">
-            <tr><th></th><th>Raw alerter</th><th>SRE AI Copilot</th></tr>
-            <tr><td>Context</td><td>just the firing rule</td><td class="with">+ deploys, dependencies, logs, ingress RED</td></tr>
-            <tr><td>Root cause</td><td>you dig</td><td class="with">ranked hypothesis with evidence</td></tr>
-            <tr><td>Blast radius</td><td>unknown</td><td class="with">who's affected — computed</td></tr>
-            <tr><td>Action</td><td>manual</td><td class="with">suggested fix behind a policy gate</td></tr>
-            <tr><td>Trust</td><td>—</td><td class="with">deterministic gate, approval, dry-run</td></tr>
+            <tr><th></th><th>Typical AI-SRE</th><th>SRE AI Copilot</th></tr>
+            <tr><td>Source of truth</td><td>the model and its context</td><td class="with">an operational graph in Postgres</td></tr>
+            <tr><td>Evidence</td><td>implicit</td><td class="with">explicit, with source provenance</td></tr>
+            <tr><td>Unknown state</td><td>usually hidden</td><td class="with">first-class: “no data” ≠ “all good”</td></tr>
+            <tr><td>History</td><td>limited to a window</td><td class="with">retained: deploys, events, anomalies</td></tr>
+            <tr><td>Authorization</td><td>model or tool decides</td><td class="with">deterministic policy gate, 8 risk axes</td></tr>
+            <tr><td>Production feedback</td><td>optional</td><td class="with">continuous: outcomes flow back into the graph</td></tr>
         </table>
         <div class="proof">
-            <span><b>1600+</b> tests</span>
+            <span><b>2000+</b> tests</span>
+            <span><b>11 540</b> graph nodes</span>
+            <span><b>188</b> namespaces</span>
             <span><b>multi-source</b> KG</span>
             <span><b>8-axis</b> policy gate</span>
-            <span><b>MCP</b> tools (SRE + client-dev)</span>
             <span><b>honest</b> blind-spot tagging</span>
         </div>
 
@@ -252,7 +315,7 @@
     </div>
 
     <footer>
-        от observability к safe remediation<br>
+        <span id="foot-ru">Сначала — слой знания. Потом — рассуждения поверх него.</span><span id="foot-en" style="display:none">Build the substrate. Then let AI reason.</span><br>
         <a href="https://froggychips.xyz" style="color:var(--accent)">froggychips.xyz</a>
     </footer>
 
@@ -264,7 +327,7 @@
             // Каждый локализованный элемент — пара id `<key>-ru` / `<key>-en`.
             // display='' возвращает CSS-дефолт (block для p/h, inline-block для .btn).
             ['subtitle','about','desc','f1t','f1b','f2t','f2b','f3t','f3b',
-             'how','safe','exh','exc','cmph','cmptab']
+             'how','prod','safe','exh','exc','cmph','cmptab','foot']
                 .forEach(function (k) {
                     var ru = document.getElementById(k + '-ru');
                     var en = document.getElementById(k + '-en');
