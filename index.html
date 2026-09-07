@@ -150,14 +150,14 @@
             <div class="card">
                 <h3 id="f2t-ru">Граф, который знает, чего он не знает</h3>
                 <h3 id="f2t-en" style="display:none">A Knowledge Graph that knows when it doesn't know</h3>
-                <p id="f2b-ru">Операционный граф из нескольких источников (топология, деплои, события, метрики, логи) с провенансом, отслеживанием свежести, проверками целостности и явными слепыми зонами. Сейчас в проде: <b>11 540 узлов</b>, <b>9 004 ребра</b>, <b>188 namespace</b>.</p>
-                <p id="f2b-en" style="display:none">A multi-source operational graph (topology, deploys, events, metrics, logs) with provenance, freshness tracking, integrity checks and explicit blind spots. Live in production: <b>11,540 nodes</b>, <b>9,004 edges</b>, <b>188 namespaces</b>.</p>
+                <p id="f2b-ru">Операционный граф из нескольких источников (топология, деплои, события, метрики, логи) с провенансом, отслеживанием свежести, проверками целостности и явными слепыми зонами. Поверх него — <b>инциденты</b> (один открытый на сервис), <b>timeline</b> по шести таблицам и <b>blast radius</b> с эпистемикой на каждом пути. Сейчас в проде: <b>17 938 узлов</b>, <b>20 945 живых рёбер</b>, <b>231 namespace</b>.</p>
+                <p id="f2b-en" style="display:none">A multi-source operational graph (topology, deploys, events, metrics, logs) with provenance, freshness tracking, integrity checks and explicit blind spots. On top of it — <b>incidents</b> (one open per service), a <b>timeline</b> across six tables and a <b>blast radius</b> with epistemic labels on every path. Live in production: <b>17,938 nodes</b>, <b>20,945 live edges</b>, <b>231 namespaces</b>.</p>
             </div>
             <div class="card">
                 <h3 id="f3t-ru">Честность по умолчанию</h3>
                 <h3 id="f3t-en" style="display:none">Honest by design</h3>
-                <p id="f3b-ru">Наблюдаемые факты отделены от прокси-сигналов и неполных данных, известные слепые зоны задокументированы в самом ответе. Система не выдаёт «зелёное», когда у неё просто нет данных — редкий, но решающий для доверия признак.</p>
-                <p id="f3b-en" style="display:none">Observed facts are distinguished from proxies and incomplete evidence; known blind spots are documented in the response itself. It won’t report “green” when it simply has no data — a rare but decisive trait for trust.</p>
+                <p id="f3b-ru">У каждого факта три исхода, а не два: <code>found</code> — нашли, <code>absent</code> — искали в живом источнике и не нашли, <code>unknown</code> — проверить было нечем. Упавший источник понижает «не нашли» до «не знаем», и критик никогда не опровергает гипотезу по <code>unknown</code>. Система не выдаёт «зелёное», когда у неё просто нет данных — редкий, но решающий для доверия признак.</p>
+                <p id="f3b-en" style="display:none">Every fact has three outcomes, not two: <code>found</code>, <code>absent</code> (looked in a live source, nothing there) and <code>unknown</code> (could not check). A failed source demotes “not found” to “don’t know”, and the critic never refutes a hypothesis with an <code>unknown</code>. It won’t report “green” when it simply has no data — a rare but decisive trait for trust.</p>
             </div>
         </div>
 
@@ -167,11 +167,11 @@
             <p class="lead">Конвейер инцидента — 6 ступеней. Честно: что уже live, а что включается с LLM-флагом.</p>
             <div class="steps">
                 <div class="step"><b>1 · Ingest</b><span class="tag-live">live</span><p>AlertManager webhook → HMAC + anti-replay + dedup.</p></div>
-                <div class="step"><b>2 · Enrich (KG)</b><span class="tag-live">live</span><p>Граф добавляет контекст: деплои, blast radius, pod-события, логи, ingress 5xx/p95.</p></div>
+                <div class="step"><b>2 · Enrich (KG)</b><span class="tag-live">live</span><p>Граф добавляет контекст: деплои (точные и ns-broadcast — как разные свидетельства), blast radius, pod-события, логи, ingress 5xx/p95. Алерт присоединяется к инциденту сервиса.</p></div>
                 <div class="step gated"><b>3 · Reason (LLM)</b><span class="tag-gate">за флагом</span><p>Гипотез-агенты строят версии из контекста; critic ранжирует и режет слабые.</p></div>
                 <div class="step"><b>4 · Respond</b><span class="tag-live">live</span> <span class="tag-gate">+LLM</span><p>Один Discord-эмбед: факты + подсказка root-cause; с LLM — связный narrative.</p></div>
-                <div class="step gated"><b>5 · Remediate</b><span class="tag-gate">opt-in</span><p>Предложить/применить kubectl-фикс за детерминированным policy-gate + approval.</p></div>
-                <div class="step"><b>6 · Self-watch</b><span class="tag-live">live</span><p>7 self-health-чеков /30мин, включая integrity-watchdog графа.</p></div>
+                <div class="step gated"><b>5 · Remediate</b><span class="tag-gate">opt-in</span><p>Предложить/применить kubectl-фикс за детерминированным policy-gate + approval. Перед записью — сверка <code>uid</code> цели с графом, после — проверка исхода через 5 и 15 минут.</p></div>
+                <div class="step"><b>6 · Self-watch</b><span class="tag-live">live</span><p>11 self-health-чеков /30 мин, включая integrity-watchdog графа; результат — в VictoriaMetrics, алерты на протухшие и упавшие проверки. Источник, который ничего не увидел, heartbeat не пишет.</p></div>
             </div>
         </div>
         <div id="how-en" style="display:none">
@@ -179,11 +179,11 @@
             <p class="lead">The incident pipeline — 6 stages. Honest about what's live today vs what the LLM flag turns on.</p>
             <div class="steps">
                 <div class="step"><b>1 · Ingest</b><span class="tag-live">live</span><p>AlertManager webhook → HMAC + anti-replay + dedup.</p></div>
-                <div class="step"><b>2 · Enrich (KG)</b><span class="tag-live">live</span><p>The graph adds context: deploys, blast radius, pod events, logs, ingress 5xx/p95.</p></div>
+                <div class="step"><b>2 · Enrich (KG)</b><span class="tag-live">live</span><p>The graph adds context: deploys (exact vs namespace-wide — different evidence), blast radius, pod events, logs, ingress 5xx/p95. The alert joins its service’s incident.</p></div>
                 <div class="step gated"><b>3 · Reason (LLM)</b><span class="tag-gate">flagged</span><p>Hypothesis agents draft versions from the context; a critic ranks and prunes weak ones.</p></div>
                 <div class="step"><b>4 · Respond</b><span class="tag-live">live</span> <span class="tag-gate">+LLM</span><p>One Discord embed: facts + a root-cause hint; with LLM, a coherent narrative.</p></div>
-                <div class="step gated"><b>5 · Remediate</b><span class="tag-gate">opt-in</span><p>Propose/apply a kubectl fix behind a deterministic policy gate + approval.</p></div>
-                <div class="step"><b>6 · Self-watch</b><span class="tag-live">live</span><p>7 self-health checks /30 min, including a graph integrity watchdog.</p></div>
+                <div class="step gated"><b>5 · Remediate</b><span class="tag-gate">opt-in</span><p>Propose/apply a kubectl fix behind a deterministic policy gate + approval. Before the write the target’s <code>uid</code> is checked against the graph; after it the outcome is re-verified at +5 and +15 min.</p></div>
+                <div class="step"><b>6 · Self-watch</b><span class="tag-live">live</span><p>11 self-health checks /30 min, including a graph integrity watchdog; results exported to VictoriaMetrics with alerts on stale or failing checks. A source that saw nothing writes no heartbeat.</p></div>
             </div>
         </div>
 
@@ -196,12 +196,14 @@
             <div class="fv">deploy <code>#482</code> 4 min before — p95 +180%, 5xx 0.6 rps at <code>api.example.com/checkout</code></div>
             <div class="fn">🌐 Endpoint health <span class="fv">(ingress-derived)</span></div>
             <div class="fv"><span class="warn">5xx 0.6 rps · p95 920 ms</span></div>
+            <div class="fn">🗂 Incident</div>
+            <div class="fv"><code>#128</code> · 3 alerts · opened 4 min ago · timeline: deploy → OOMKilled → alert</div>
             <div class="fn">💥 Blast radius</div>
-            <div class="fv">3 svc → <code>orders-service</code>, <code>cart-service</code>, <code>payments-gateway</code> · 1 URL</div>
+            <div class="fv">3 svc → ◇ <code>orders-service</code>, ◇ <code>cart-service</code>, ≈ <code>payments-gateway</code> · 1 URL<br><span class="fv">❔ callers known from manifests/env only — list may be incomplete</span></div>
             <div class="fn">🩺 Pod events</div>
             <div class="fv">CrashLoopBackOff ×7 (OOMKilled)</div>
             <div class="fn">🔧 Suggested action</div>
-            <div class="fv"><code>kubectl rollout undo deploy/checkout-service</code> &nbsp; <span class="ok">[⚙️ Apply — dry-run ✓, risk: medium]</span></div>
+            <div class="fv"><code>kubectl rollout undo deploy/checkout-service</code> &nbsp; <span class="ok">[⚙️ Apply — dry-run ✓, risk: medium, target uid ✓]</span></div>
         </div>
 
         <!-- WHY SAFE -->
@@ -229,7 +231,7 @@
         <!-- BUILT AGAINST PRODUCTION -->
         <div id="prod-ru">
             <h2 class="sec">Проверено продом, а не демо-кластером</h2>
-            <p class="lead">Четыре реальных дефекта этой недели. Каждый нашёлся на живых данных и стал регрессионным тестом.</p>
+            <p class="lead">Реальные дефекты, найденные на живых данных. Каждый стал регрессионным тестом.</p>
             <div class="prod">
                 <div class="pcard">
                     <span class="num">2 092 невалидных ребра за тик</span>
@@ -251,11 +253,31 @@
                     <p>Новый тип узла уронил <code>orphan</code> с 72,5% до 42% за ночь — без единой новой интеграции. Каждый «вылеченный» сервис получил ровно одно ребро: на самого себя.</p>
                     <span class="fix">→ Откатили метрику, а не схему. У каждой метрики качества теперь тест на то, чего она считать НЕ должна.</span>
                 </div>
+                <div class="pcard">
+                    <span class="num">10 064 ложных деплоя за 40 минут</span>
+                    <p>Первый watcher выкатов считал деплоем рост <code>metadata.generation</code>. Его крутит каждый тик HPA и каждый <code>kubectl scale</code>: 776 сервисов получили «недавний деплой», не меняя ни одного образа.</p>
+                    <span class="fix">→ Критерий — смена образа или hash <code>spec.template</code>. Hotfix через 40 минут, записи вычищены.</span>
+                </div>
+                <div class="pcard">
+                    <span class="num">25 000 поколений одного Deployment</span>
+                    <p><code>rollout status</code> висел на «spec update to be observed». Мёртвая ingress-заглушка без класса матчилась пятью контроллерами, её статус скакал между VIP, а Rancher каждый раз переписывал аннотацию на Deployment.</p>
+                    <span class="fix">→ Заглушка снята; generation замер за минуту.</span>
+                </div>
+                <div class="pcard">
+                    <span class="num">327 из 390 алертов — один шум</span>
+                    <p>Первые 13 инцидентов в проде: 7 — <code>KubeDeploymentGenerationMismatch</code>, который Discord давно считал шумом. Без пометки таблица инцидентов стала бы таблицей одного алерта.</p>
+                    <span class="fix">→ Инцидент наследует решение о шуме; настоящий алерт снимает флаг.</span>
+                </div>
+                <div class="pcard">
+                    <span class="num">66 алертов на экспортер метрик</span>
+                    <p>У <code>KubeJobFailed</code> лейбл <code>service</code> — kube-state-metrics, цель — в <code>job_name</code>. Месяц все они лежали на экспортере, хотя граф знал владельцев job'ов.</p>
+                    <span class="fix">→ Владелец из графа, иначе имя CronJob; экспортер — никогда.</span>
+                </div>
             </div>
         </div>
         <div id="prod-en" style="display:none">
             <h2 class="sec">Built against production, not a demo cluster</h2>
-            <p class="lead">Four real defects from a single week. Each surfaced on live data and became a regression test.</p>
+            <p class="lead">Real defects found on live data. Each became a regression test.</p>
             <div class="prod">
                 <div class="pcard">
                     <span class="num">2,092 invalid edges per tick</span>
@@ -277,6 +299,26 @@
                     <p>A new node type made <code>orphan</code> drop from 72.5% to 42% overnight — without a single new integration. Every “cured” service had gained exactly one edge: to itself.</p>
                     <span class="fix">→ We reverted the metric, not the schema. Every quality metric now has a test asserting what it must NOT count.</span>
                 </div>
+                <div class="pcard">
+                    <span class="num">10,064 false deploys in 40 minutes</span>
+                    <p>The first rollout watcher treated <code>metadata.generation</code> growth as a deploy. HPA and every <code>kubectl scale</code> bump it: 776 services got a “recent deploy” without a single image change.</p>
+                    <span class="fix">→ Criterion: image or <code>spec.template</code> hash change. Hotfix in 40 minutes, rows purged.</span>
+                </div>
+                <div class="pcard">
+                    <span class="num">25,000 generations of one Deployment</span>
+                    <p><code>rollout status</code> hung on “spec update to be observed”. A dead classless ingress stub matched five controllers, its status flapped between VIPs and Rancher rewrote a Deployment annotation each time.</p>
+                    <span class="fix">→ Stub removed; generation froze within a minute.</span>
+                </div>
+                <div class="pcard">
+                    <span class="num">327 of 390 alerts — one noise</span>
+                    <p>First 13 incidents in production: 7 were <code>KubeDeploymentGenerationMismatch</code>, long classified as noise in Discord. Unflagged, the incident table would have become a table of one alert.</p>
+                    <span class="fix">→ The incident inherits the noise verdict; a real alert clears it.</span>
+                </div>
+                <div class="pcard">
+                    <span class="num">66 alerts on the metrics exporter</span>
+                    <p><code>KubeJobFailed</code> carries <code>service</code> = kube-state-metrics and the target in <code>job_name</code>. For a month all of them landed on the exporter while the graph knew the jobs’ owners.</p>
+                    <span class="fix">→ Owner from the graph, else the CronJob name; the exporter — never.</span>
+                </div>
             </div>
         </div>
 
@@ -288,6 +330,8 @@
             <tr><td>Evidence</td><td>подразумевается</td><td class="with">явное, с провенансом источника</td></tr>
             <tr><td>Неизвестное</td><td>обычно скрыто</td><td class="with">полноправное состояние: «данных нет» ≠ «всё хорошо»</td></tr>
             <tr><td>История</td><td>ограничена окном</td><td class="with">хранится: деплои, события, аномалии</td></tr>
+            <tr><td>Инцидент</td><td>= один алерт</td><td class="with">один открытый на сервис; флаппинг переоткрывает, а не плодит; timeline по шести таблицам</td></tr>
+            <tr><td>Результат действия</td><td>exit code kubectl</td><td class="with">та же ли цель (uid), сработало ли, стало ли лучше — через 5 и 15 минут</td></tr>
             <tr><td>Право на действие</td><td>решает модель или тул</td><td class="with">детерминированный policy-gate, 8 risk-axes</td></tr>
             <tr><td>Обратная связь</td><td>опциональна</td><td class="with">непрерывная: результат возвращается в граф</td></tr>
         </table>
@@ -297,16 +341,18 @@
             <tr><td>Evidence</td><td>implicit</td><td class="with">explicit, with source provenance</td></tr>
             <tr><td>Unknown state</td><td>usually hidden</td><td class="with">first-class: “no data” ≠ “all good”</td></tr>
             <tr><td>History</td><td>limited to a window</td><td class="with">retained: deploys, events, anomalies</td></tr>
+            <tr><td>Incident</td><td>= one alert</td><td class="with">one open per service; flapping re-opens instead of multiplying; timeline across six tables</td></tr>
+            <tr><td>Action outcome</td><td>kubectl exit code</td><td class="with">same target (uid)? took effect? got better? — checked at +5 and +15 min</td></tr>
             <tr><td>Authorization</td><td>model or tool decides</td><td class="with">deterministic policy gate, 8 risk axes</td></tr>
             <tr><td>Production feedback</td><td>optional</td><td class="with">continuous: outcomes flow back into the graph</td></tr>
         </table>
         <div class="proof">
-            <span><b>2000+</b> tests</span>
-            <span><b>11 540</b> graph nodes</span>
-            <span><b>188</b> namespaces</span>
-            <span><b>multi-source</b> KG</span>
+            <span><b>3300+</b> tests</span>
+            <span><b>17 938</b> graph nodes</span>
+            <span><b>231</b> namespaces</span>
+            <span><b>3 outcomes</b> per fact</span>
             <span><b>8-axis</b> policy gate</span>
-            <span><b>honest</b> blind-spot tagging</span>
+            <span><b>verified</b> remediation</span>
         </div>
 
         <div style="text-align:center; margin: 40px 0;">
