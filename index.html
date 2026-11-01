@@ -136,8 +136,8 @@
         <div class="card">
             <h2 id="about-ru">О проекте</h2>
             <h2 id="about-en" style="display:none">About the Project</h2>
-            <p id="desc-ru">Гибрид: детерминированный Knowledge Graph + LLM-пайплайн за policy-gate. Обогащение алертов, RCA и controlled remediation в Kubernetes. Спроектирован честным к своим слепым зонам — система помечает, чего она не знает, вместо того чтобы выдавать догадки за факты.</p>
-            <p id="desc-en" style="display:none">A hybrid: deterministic Knowledge Graph + an LLM pipeline behind a policy gate. Alert enrichment, RCA and controlled remediation for Kubernetes. Built to be honest about its blind spots — it marks what it doesn't know instead of passing guesses off as facts.</p>
+            <p id="desc-ru">Детерминированный Knowledge Graph кластера и обогащение алертов из него — без LLM. Controlled remediation по playbook-ам из реестра: предлагает сервер, одобряет человек кнопкой в Discord. LLM-пайплайн (RCA) реализован, но в проде выключен: всё, что приходит в канал, посчитано из графа. Спроектирован честным к своим слепым зонам — система помечает, чего она не знает, вместо того чтобы выдавать догадки за факты.</p>
+            <p id="desc-en" style="display:none">A deterministic Knowledge Graph of the cluster and alert enrichment from it — no LLM involved. Controlled remediation by registry playbooks: the server proposes, a human approves with a Discord button. The LLM pipeline (RCA) is implemented but switched off in production: everything that reaches the channel is computed from the graph. Built to be honest about its blind spots — it marks what it doesn't know instead of passing guesses off as facts.</p>
         </div>
 
         <div class="features">
@@ -150,8 +150,8 @@
             <div class="card">
                 <h3 id="f2t-ru">Граф, который знает, чего он не знает</h3>
                 <h3 id="f2t-en" style="display:none">A Knowledge Graph that knows when it doesn't know</h3>
-                <p id="f2b-ru">Операционный граф из нескольких источников (топология, деплои, события, метрики, логи) с провенансом, отслеживанием свежести, проверками целостности и явными слепыми зонами. Поверх него — <b>инциденты</b> (один открытый на сервис), <b>timeline</b> по шести таблицам и <b>blast radius</b> с эпистемикой на каждом пути. Сейчас в проде: <b>17 938 узлов</b>, <b>20 945 живых рёбер</b>, <b>231 namespace</b>.</p>
-                <p id="f2b-en" style="display:none">A multi-source operational graph (topology, deploys, events, metrics, logs) with provenance, freshness tracking, integrity checks and explicit blind spots. On top of it — <b>incidents</b> (one open per service), a <b>timeline</b> across six tables and a <b>blast radius</b> with epistemic labels on every path. Live in production: <b>17,938 nodes</b>, <b>20,945 live edges</b>, <b>231 namespaces</b>.</p>
+                <p id="f2b-ru">Операционный граф из нескольких источников (топология, деплои, события, метрики, логи) с провенансом, отслеживанием свежести, проверками целостности и явными слепыми зонами. Поверх него — <b>инциденты</b> (один открытый на сервис), <b>timeline</b> по шести таблицам и <b>blast radius</b> с эпистемикой на каждом пути. Сейчас в проде: <b>13 064 узла</b> в живых namespace (22 908 с историей), <b>26 874 живых ребра</b>, <b>175 namespace</b>.</p>
+                <p id="f2b-en" style="display:none">A multi-source operational graph (topology, deploys, events, metrics, logs) with provenance, freshness tracking, integrity checks and explicit blind spots. On top of it — <b>incidents</b> (one open per service), a <b>timeline</b> across six tables and a <b>blast radius</b> with epistemic labels on every path. Live in production: <b>13,064 nodes</b> in live namespaces (22,908 with history), <b>26,874 live edges</b>, <b>175 namespaces</b>.</p>
             </div>
             <div class="card">
                 <h3 id="f3t-ru">Честность по умолчанию</h3>
@@ -164,26 +164,26 @@
         <!-- HOW IT WORKS -->
         <div id="how-ru">
             <h2 class="sec">Как это работает</h2>
-            <p class="lead">Конвейер инцидента — 6 ступеней. Честно: что уже live, а что включается с LLM-флагом.</p>
+            <p class="lead">Конвейер инцидента — 6 ступеней. Честно: что работает в проде, а что выключено.</p>
             <div class="steps">
                 <div class="step"><b>1 · Ingest</b><span class="tag-live">live</span><p>AlertManager webhook → HMAC + anti-replay + dedup.</p></div>
                 <div class="step"><b>2 · Enrich (KG)</b><span class="tag-live">live</span><p>Граф добавляет контекст: деплои (точные и ns-broadcast — как разные свидетельства), blast radius, pod-события, логи, ingress 5xx/p95. Алерт присоединяется к инциденту сервиса.</p></div>
-                <div class="step gated"><b>3 · Reason (LLM)</b><span class="tag-gate">за флагом</span><p>Гипотез-агенты строят версии из контекста; critic ранжирует и режет слабые.</p></div>
+                <div class="step gated"><b>3 · Reason (LLM)</b><span class="tag-gate">выключен в проде</span><p>Гипотез-агенты строят версии из контекста; critic ранжирует и режет слабые. Код есть, маршрута в проде нет.</p></div>
                 <div class="step"><b>4 · Respond</b><span class="tag-live">live</span> <span class="tag-gate">+LLM</span><p>Один Discord-эмбед: факты + подсказка root-cause; с LLM — связный narrative.</p></div>
-                <div class="step gated"><b>5 · Remediate</b><span class="tag-gate">opt-in</span><p>Предложить/применить kubectl-фикс за детерминированным policy-gate + approval. Перед записью — сверка <code>uid</code> цели с графом, после — проверка исхода через 5 и 15 минут.</p></div>
-                <div class="step"><b>6 · Self-watch</b><span class="tag-live">live</span><p>11 self-health-чеков /30 мин, включая integrity-watchdog графа; результат — в VictoriaMetrics, алерты на протухшие и упавшие проверки. Источник, который ничего не увидел, heartbeat не пишет.</p></div>
+                <div class="step"><b>5 · Remediate</b><span class="tag-live">live</span><p>Правило → playbook из реестра (перезапуск crashloop без OOM и без свежего деплоя; +1 реплика при CPU-троттлинге) → policy-gate → карточка с кнопками. Нажимает только оператор из allowlist; prod/preprod — block. Перед записью — dry-run и сверка <code>uid</code> цели, после — проверка исхода через 5 и 15 минут.</p></div>
+                <div class="step"><b>6 · Self-watch</b><span class="tag-live">live</span><p>15 self-health-чеков /30 мин, включая integrity-watchdog графа, и еженедельная сверка с живым кластером; результат — в VictoriaMetrics, алерты на протухшие и упавшие проверки. Источник, который ничего не увидел, heartbeat не пишет.</p></div>
             </div>
         </div>
         <div id="how-en" style="display:none">
             <h2 class="sec">How it works</h2>
-            <p class="lead">The incident pipeline — 6 stages. Honest about what's live today vs what the LLM flag turns on.</p>
+            <p class="lead">The incident pipeline — 6 stages. Honest about what runs in production and what is switched off.</p>
             <div class="steps">
                 <div class="step"><b>1 · Ingest</b><span class="tag-live">live</span><p>AlertManager webhook → HMAC + anti-replay + dedup.</p></div>
                 <div class="step"><b>2 · Enrich (KG)</b><span class="tag-live">live</span><p>The graph adds context: deploys (exact vs namespace-wide — different evidence), blast radius, pod events, logs, ingress 5xx/p95. The alert joins its service’s incident.</p></div>
-                <div class="step gated"><b>3 · Reason (LLM)</b><span class="tag-gate">flagged</span><p>Hypothesis agents draft versions from the context; a critic ranks and prunes weak ones.</p></div>
+                <div class="step gated"><b>3 · Reason (LLM)</b><span class="tag-gate">off in prod</span><p>Hypothesis agents draft versions from the context; a critic ranks and prunes weak ones. The code exists; production has no route to it.</p></div>
                 <div class="step"><b>4 · Respond</b><span class="tag-live">live</span> <span class="tag-gate">+LLM</span><p>One Discord embed: facts + a root-cause hint; with LLM, a coherent narrative.</p></div>
-                <div class="step gated"><b>5 · Remediate</b><span class="tag-gate">opt-in</span><p>Propose/apply a kubectl fix behind a deterministic policy gate + approval. Before the write the target’s <code>uid</code> is checked against the graph; after it the outcome is re-verified at +5 and +15 min.</p></div>
-                <div class="step"><b>6 · Self-watch</b><span class="tag-live">live</span><p>11 self-health checks /30 min, including a graph integrity watchdog; results exported to VictoriaMetrics with alerts on stale or failing checks. A source that saw nothing writes no heartbeat.</p></div>
+                <div class="step"><b>5 · Remediate</b><span class="tag-live">live</span><p>Rule → registry playbook (restart a crashloop with no OOM and no fresh deploy; +1 replica on CPU throttling) → policy gate → a card with buttons. Only an operator on the allowlist can press them; prod/preprod are blocked. Before the write: dry-run and a target <code>uid</code> check; after it the outcome is re-verified at +5 and +15 min.</p></div>
+                <div class="step"><b>6 · Self-watch</b><span class="tag-live">live</span><p>15 self-health checks /30 min, including a graph integrity watchdog, plus a weekly reconciliation against the live cluster; results exported to VictoriaMetrics with alerts on stale or failing checks. A source that saw nothing writes no heartbeat.</p></div>
             </div>
         </div>
 
@@ -202,8 +202,8 @@
             <div class="fv">3 svc → ◇ <code>orders-service</code>, ◇ <code>cart-service</code>, ≈ <code>payments-gateway</code> · 1 URL<br><span class="fv">❔ callers known from manifests/env only — list may be incomplete</span></div>
             <div class="fn">🩺 Pod events</div>
             <div class="fv">CrashLoopBackOff ×7 (OOMKilled)</div>
-            <div class="fn">🔧 Suggested action</div>
-            <div class="fv"><code>kubectl rollout undo deploy/checkout-service</code> &nbsp; <span class="ok">[⚙️ Apply — dry-run ✓, risk: medium, target uid ✓]</span></div>
+            <div class="fn">🔧 Remediation</div>
+            <div class="fv">playbook <code>restart_crashloop_deployment</code> — not applicable: OOMKilled + deploy 4 min ago<br><span class="warn">prod: write actions blocked by policy — a rollback is a human call</span></div>
         </div>
 
         <!-- WHY SAFE -->
@@ -215,6 +215,7 @@
                 <li><b>Dry-run по умолчанию</b> + <b>approval</b>: реальный apply только после <code>--dry-run=server</code> и явного подтверждения кнопкой (risk ≤ medium).</li>
                 <li><b>TOCTOU-подпись intent</b> + anti-replay + <b>savepoint-изоляция</b> + полный OTEL-аудит каждого действия.</li>
                 <li><b>Default = advisory</b>: из коробки copilot не зовёт <code>kubectl</code> вообще — анализирует и пишет в Discord.</li>
+                <li><b>Как включено у нас</b>: кнопки нажимает только оператор из allowlist (fail-closed, роли не используются); prod/preprod — block политикой; новый путь включается сначала на одном namespace.</li>
             </ul>
         </div>
         <div id="safe-en" style="display:none">
@@ -225,6 +226,7 @@
                 <li><b>Dry-run by default</b> + <b>approval</b>: a real apply happens only after <code>--dry-run=server</code> and an explicit button confirmation (risk ≤ medium).</li>
                 <li><b>TOCTOU intent signature</b> + anti-replay + <b>savepoint isolation</b> + full OTEL audit of every action.</li>
                 <li><b>Default = advisory</b>: out of the box the copilot never calls <code>kubectl</code> — it analyzes and posts to Discord.</li>
+                <li><b>How it is enabled here</b>: only an operator on the allowlist can press the buttons (fail-closed, no roles); prod/preprod are blocked by policy; a new path is enabled on one namespace first.</li>
             </ul>
         </div>
 
@@ -273,6 +275,21 @@
                     <p>У <code>KubeJobFailed</code> лейбл <code>service</code> — kube-state-metrics, цель — в <code>job_name</code>. Месяц все они лежали на экспортере, хотя граф знал владельцев job'ов.</p>
                     <span class="fix">→ Владелец из графа, иначе имя CronJob; экспортер — никогда.</span>
                 </div>
+                <div class="pcard">
+                    <span class="num">38% вебхуков потеряно за 30 минут</span>
+                    <p>Мост remediation запустили фоновой задачей прямо в event loop API. Синхронные вызовы kubectl блокировали цикл, пробы падали, поды выпадали из Service — Alertmanager терял вебхуки, пока мост не выключили флагом.</p>
+                    <span class="fix">→ Мост — в Celery; новый путь включается сначала на одном namespace.</span>
+                </div>
+                <div class="pcard">
+                    <span class="num">6 717 живых сервисов — «синтетика»</span>
+                    <p>При сносе стенда его узлы помечались как дрейф, но при пересоздании под тем же именем пометку никто не снимал. Health по ним не считался — граф молча считал живые стенды мёртвыми.</p>
+                    <span class="fix">→ Обратный ход с тем же двойным подтверждением, что у пометки.</span>
+                </div>
+                <div class="pcard">
+                    <span class="num">48% WAL — ради метки времени</span>
+                    <p>Upsert переписывал строку узла или ребра на каждом проходе синка, даже когда ничего не менялось; индекс на <code>last_seen_at</code> делал каждое такое обновление не-HOT.</p>
+                    <span class="fix">→ Касание раз в 30 мин / 3 ч, реальные изменения — сразу.</span>
+                </div>
             </div>
         </div>
         <div id="prod-en" style="display:none">
@@ -319,6 +336,21 @@
                     <p><code>KubeJobFailed</code> carries <code>service</code> = kube-state-metrics and the target in <code>job_name</code>. For a month all of them landed on the exporter while the graph knew the jobs’ owners.</p>
                     <span class="fix">→ Owner from the graph, else the CronJob name; the exporter — never.</span>
                 </div>
+                <div class="pcard">
+                    <span class="num">38% of webhooks lost in 30 minutes</span>
+                    <p>The remediation bridge was started as a background task right in the API event loop. Synchronous kubectl calls blocked the loop, probes failed, pods dropped out of the Service — Alertmanager lost webhooks until the bridge was switched off by a flag.</p>
+                    <span class="fix">→ The bridge runs in Celery; a new path is enabled on one namespace first.</span>
+                </div>
+                <div class="pcard">
+                    <span class="num">6,717 live services marked “synthetic”</span>
+                    <p>When a stand was deleted its nodes were marked as drift, but nothing removed the mark when the stand was re-created under the same name. Health was not computed for them — the graph silently treated live stands as dead.</p>
+                    <span class="fix">→ The reverse path, with the same double confirmation as the mark.</span>
+                </div>
+                <div class="pcard">
+                    <span class="num">48% of WAL — for a timestamp</span>
+                    <p>Upserts rewrote a node or edge row on every sync pass even when nothing changed; an index on <code>last_seen_at</code> made every such update non-HOT.</p>
+                    <span class="fix">→ Touch once per 30 min / 3 h; real changes are written at once.</span>
+                </div>
             </div>
         </div>
 
@@ -347,9 +379,9 @@
             <tr><td>Production feedback</td><td>optional</td><td class="with">continuous: outcomes flow back into the graph</td></tr>
         </table>
         <div class="proof">
-            <span><b>3300+</b> tests</span>
-            <span><b>17 938</b> graph nodes</span>
-            <span><b>231</b> namespaces</span>
+            <span><b>4700+</b> tests</span>
+            <span><b>13 064</b> live graph nodes</span>
+            <span><b>175</b> namespaces</span>
             <span><b>3 outcomes</b> per fact</span>
             <span><b>8-axis</b> policy gate</span>
             <span><b>verified</b> remediation</span>
